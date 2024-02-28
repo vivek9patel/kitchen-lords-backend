@@ -1,6 +1,5 @@
 import { initializeApp} from "firebase/app";
 import { getDatabase, Database } from "firebase/database";
-import { getAuth } from "firebase/auth";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -27,7 +26,5 @@ export const getFirebaseDB = (): Database => {
   }
   return dbInstance;
 };
-
-export const auth = getAuth(app);
 
 export default app;

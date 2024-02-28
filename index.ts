@@ -1,12 +1,27 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import KitchenDB from "./firebase/models/Kitchen";
 import ChefDB from "./firebase/models/Chef";
+import { checkUserWriteAccess } from "./utils";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+// alow requests from localhost and https://kitchen-lords.vercel.app/
+app.options('*', cors());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Origin', 'https://kitchen-lords.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
+app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Kitchen Lords server!");
@@ -115,3 +130,46 @@ app.get("/kitchen/image", async (req: Request, res: Response) => {
   const imageURL = await kitchen.getKitchenImageURL();
   res.send(imageURL);
 });
+
+app.put("/kitchen/day/assign", async (req: Request, res: Response) => {
+  const uid = req.body.uid as string;
+  const id = req.body.id as string;
+  const day = req.body.day as string;
+  const chef_id = req.body.chef_id as string;
+  const dish_name = req.body.dish_name as string;
+  const dish_type = req.body.dish_type as string;
+  if (!id) {
+    res.status(400).send("Missing kitchen identifier");
+    return;
+  }
+  if (!day) {
+    res.status(400).send("Missing day");
+    return;
+  }
+  if (!chef_id) {
+    res.status(400).send("Missing chef identifier");
+    return;
+  }
+  if (!dish_name) {
+    res.status(400).send("Missing dish name");
+    return;
+  }
+  if (!dish_type) {
+    res.status(400).send("Missing dish type");
+    return;
+  }
+  if (dish_type !== 'italian' && dish_type !== 'indian' && dish_type !== 'mexican' && dish_type !== 'gujarati' && dish_type !== 'punjabi' && dish_type !== 'other') {
+    res.status(400).send("Invalid dish type");
+    return;
+  }
+  
+  if(!(await checkUserWriteAccess(uid, chef_id, id))){
+    res.status(403).send("Unauthorized");
+    return;
+  }
+  console.log("Assigning", chef_id, "to", day, "in", id);
+
+  const kitchen = KitchenDB.getInstance(id);
+  await kitchen.updateDishAndAssignee(day, dish_name, dish_type, chef_id);
+  res.send({success: true});
+})
