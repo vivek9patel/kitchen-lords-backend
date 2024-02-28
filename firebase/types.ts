@@ -39,4 +39,4 @@ export type Kitchen = {
 
 export type Reaction = '👎' | '🤮' | '👍' | '😍' | '🥳' | '💗';
 
-export type DishType = 'italian' | 'indian' | 'mexican' | 'other';
+export type DishType = 'italian' | 'indian' | 'mexican' | 'chienese' | 'other';

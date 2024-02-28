@@ -2,7 +2,7 @@ import { Kitchen } from "./types";
 
 export const DEFAULT_KITCHEN_SCHEMA: Kitchen = {
     "name": "Vivek's Kitchen",
-    "image_url": "",
+    "image_url": "https://picsum.photos/600/300",
     "week": {
         "monday": {
             "day": "monday",

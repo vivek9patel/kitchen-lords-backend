@@ -170,7 +170,7 @@ app.put("/kitchen/day/assign", async (req: Request, res: Response) => {
     res.status(400).send("Missing dish type");
     return;
   }
-  if (dish_type !== 'italian' && dish_type !== 'indian' && dish_type !== 'mexican' && dish_type !== 'other') {
+  if (dish_type !== 'italian' && dish_type !== 'indian' && dish_type !== 'mexican' && dish_type !== 'chienese' && dish_type !== 'other') {
     res.status(400).send("Invalid dish type");
     return;
   }
@@ -186,6 +186,35 @@ app.put("/kitchen/day/assign", async (req: Request, res: Response) => {
   await kitchen.updateDishAndAssignee(day, dish_name, dish_type, chef_id);
   res.send({success: true});
 })
+
+app.delete("/kitchen/day/assign", async (req: Request, res: Response) => {
+  const uid = req.body.uid as string;
+  const id = req.body.id as string;
+  const day = req.body.day as string;
+  const chef_id = req.body.chef_id as string;
+  if (!id) {
+    res.status(400).send("Missing kitchen identifier");
+    return;
+  }
+  if (!day) {
+    res.status(400).send("Missing day");
+    return;
+  }
+  if (!chef_id) {
+    res.status(400).send("Missing chef identifier");
+    return;
+  }
+  if(!(await checkUserWriteAccess(uid, chef_id, id))){
+    res.status(403).send("Unauthorized");
+    return;
+  }
+  console.log("Loggedin user", uid)
+  console.log("Unassigning", chef_id, "from", day, "in", id);
+
+  const kitchen = KitchenDB.getInstance(id);
+  await kitchen.clearAssignee(day);
+  res.send({success: true});
+});
 
 app.put("/kitchen/day/reaction", async (req: Request, res: Response) => {
   const uid = req.body.uid as string;

@@ -1,16 +1,16 @@
 import ChefDB from "./firebase/models/Chef";
 
-export async function checkUserWriteAccess(uid: string, chef_id: string, kitchen_id: string): Promise<boolean>{
-    const chef = await ChefDB.getInstance(chef_id).get();
-    if(chef.is_god) return true;
+export async function checkUserWriteAccess(uid: string, toEditChefId: string, kitchen_id: string): Promise<boolean>{
+    const loggedInUser = await ChefDB.getInstance(uid).get();
+    if(loggedInUser.is_god) return true;
 
-    if (uid !== chef_id) {
+    if (uid !== toEditChefId) {
         return false;
     }
     
-    const kitchenWriteAccess = chef.kitchens[kitchen_id] && chef.kitchens[kitchen_id].is_admin;
+    const kitchenWriteAccess = loggedInUser.kitchens[kitchen_id] && loggedInUser.kitchens[kitchen_id].is_admin;
 
-    if (!chef || !chef.has_access || !kitchenWriteAccess) {
+    if (!loggedInUser || !loggedInUser.has_access || !kitchenWriteAccess) {
         return false;
     }
 

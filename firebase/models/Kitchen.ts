@@ -109,7 +109,11 @@ export default  class KitchenDB{
     }
 
     public async removeDish(day: string){
-        await update(ref(this.db,`${this.root}/week/${day}`), {dish_name: null, dish_style: null, chef_id: null});
+        await update(ref(this.db,`${this.root}/week/${day}`), {dish_name: null, dish_style: "other", chef_id: null});
+    }
+
+    public async clearAssignee(day: string){
+        await update(ref(this.db,`${this.root}/week/${day}`), {dish_name: null, dish_style: "other", chef_id: null, reactions: null, comments: null});
     }
 
     public setId(kitchenID: string){
