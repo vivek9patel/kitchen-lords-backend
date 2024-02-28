@@ -1,6 +1,6 @@
 import {getFirebaseDB} from '../index';
 import { ref, update, Database, get, set } from "firebase/database";
-import { DishType, Reaction, Kitchen, Day } from '../types';
+import { DishType, Reaction, Kitchen, Day, Chef } from '../types';
 import {DEFAULT_KITCHEN_SCHEMA} from "../constants";
 import md5 from 'md5';
 
@@ -50,6 +50,20 @@ export default  class KitchenDB{
             dish_style: "",
             dish_name: ""
         };
+    }
+
+    public async getAllChefs(kitchenID: string): Promise<Chef[]>{
+        const snapshot = await get(ref(this.db,`chef`));
+        const allChefs = snapshot.val() as {
+            [chef_id: string]: Chef;
+        };
+        const thisKitchenChefs: Chef[] = [];
+        for (const chef_id in allChefs) {
+            if (allChefs[chef_id].kitchens[kitchenID] ) {
+                thisKitchenChefs.push(allChefs[chef_id]);
+            }
+        }
+        return thisKitchenChefs;
     }
 
     // update methods

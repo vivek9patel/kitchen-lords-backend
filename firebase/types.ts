@@ -15,18 +15,12 @@ export type Chef = {
 };
 
 export type Week = {
-    monday: Day;
-    tuesday: Day;
-    wednesday: Day;
-    thursday: Day;
-    friday: Day;
-    saturday: Day;
-    sunday: Day;
+    [day: string]: Day;
 };
 
 export type Day = {
     day: string;
-    chef_id: string;
+    chef_id: string; // this is actually chef's email - sorry
     comments: {
         [chef_id: string]: string;
     };
@@ -43,6 +37,6 @@ export type Kitchen = {
     image_url: string;
 };
 
-export type Reaction = '👎' | '👍' | '😍' | '🥳' | '💗';
+export type Reaction = '👎' | '🤮' | '👍' | '😍' | '🥳' | '💗';
 
-export type DishType = 'italian' | 'indian' | 'mexican' | 'gujarati' | 'punjabi' | 'other';
+export type DishType = 'italian' | 'indian' | 'mexican' | 'other';

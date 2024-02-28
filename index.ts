@@ -4,6 +4,7 @@ import cors from "cors";
 import KitchenDB from "./firebase/models/Kitchen";
 import ChefDB from "./firebase/models/Chef";
 import { checkUserWriteAccess } from "./utils";
+import md5 from "md5";
 
 dotenv.config();
 
@@ -82,6 +83,17 @@ app.get("/chef/kitchens", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/kitchen/chefs", async (req: Request, res: Response) => {
+  const id = req.query.id as string;
+  if (!id) {
+    res.status(400).send("Missing kitchen identifier");
+    return;
+  }
+  const kitchen = KitchenDB.getInstance(id);
+  const chefs = await kitchen.getAllChefs(id);
+  res.send(chefs);
+});
+
 app.get("/kitchen/name", async (req: Request, res: Response) => {
   const id = req.query.id as string;
   if (!id) {
@@ -158,7 +170,7 @@ app.put("/kitchen/day/assign", async (req: Request, res: Response) => {
     res.status(400).send("Missing dish type");
     return;
   }
-  if (dish_type !== 'italian' && dish_type !== 'indian' && dish_type !== 'mexican' && dish_type !== 'gujarati' && dish_type !== 'punjabi' && dish_type !== 'other') {
+  if (dish_type !== 'italian' && dish_type !== 'indian' && dish_type !== 'mexican' && dish_type !== 'other') {
     res.status(400).send("Invalid dish type");
     return;
   }
@@ -167,9 +179,44 @@ app.put("/kitchen/day/assign", async (req: Request, res: Response) => {
     res.status(403).send("Unauthorized");
     return;
   }
+  console.log("Loggedin user", uid)
   console.log("Assigning", chef_id, "to", day, "in", id);
 
   const kitchen = KitchenDB.getInstance(id);
   await kitchen.updateDishAndAssignee(day, dish_name, dish_type, chef_id);
+  res.send({success: true});
+})
+
+app.put("/kitchen/day/reaction", async (req: Request, res: Response) => {
+  const uid = req.body.uid as string;
+  const chef_id = req.body.chef_id as string;
+  const id = req.body.id as string;
+  const day = req.body.day as string;
+  const reaction = req.body.reaction as string;
+  if (!id) {
+    res.status(400).send("Missing kitchen identifier");
+    return;
+  }
+  if (!day) {
+    res.status(400).send("Missing day");
+    return;
+  }
+  if (!reaction) {
+    res.status(400).send("Missing reaction");
+    return;
+  }
+  if (reaction !== '👎' && reaction !== '👍' && reaction !== '😍' && reaction !== '🥳' && reaction !== '💗' && reaction !== '🤮') {
+    res.status(400).send("Invalid reaction");
+    return;
+  }
+  if(!(await checkUserWriteAccess(uid, chef_id, id))){
+    res.status(403).send("Unauthorized");
+    return;
+  }
+  console.log("Loggedin user", uid)
+  console.log("Reacting", reaction, "to", day, "in", id, "by", chef_id);
+
+  const kitchen = KitchenDB.getInstance(id);
+  await kitchen.updateReaction(day, md5(chef_id), reaction);
   res.send({success: true});
 })

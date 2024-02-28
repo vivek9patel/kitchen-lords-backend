@@ -65,13 +65,15 @@ export default class ChefDB{
 
 }
 
-export async function createChef(chef_email: string, chef_name: string): Promise<ChefDB>{
-    const chefRef = ref(getFirebaseDB(), `chef/${chef_email}`);
+export async function createChef(chef_email: string, chef_name: string, kitchens: Kitchens): Promise<ChefDB>{
+    const chefRef = ref(getFirebaseDB(), `chef/${md5(chef_email)}`);
     await set(chefRef, {
         email: chef_email,
         name: chef_name,
-        kitchens: {},
-        is_god: false
+        url: "",
+        kitchens,
+        is_god: false,
+        has_access: true,
     });
     return ChefDB.getInstance(chef_email);
 }
